@@ -15,7 +15,6 @@ const ConfirmTransaction = require('./components/pages/confirm-transaction')
 
 // slideout menu
 const Sidebar = require('./components/sidebars').default
-
 // other views
 import Home from './components/pages/home'
 import Settings from './components/pages/settings'

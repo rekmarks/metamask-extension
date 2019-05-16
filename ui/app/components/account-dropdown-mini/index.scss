@@ -1,10 +1,12 @@
 .account-dropdown-mini {
+  display: flex;
+  justify-content: center;
+  justify-self: center;
   height: 22px;
   background-color: $white;
   font-family: Roboto;
   line-height: 16px;
   font-size: 12px;
-  width: 124px;
 
   &__close-area {
     position: fixed;

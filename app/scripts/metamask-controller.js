@@ -178,7 +178,7 @@ module.exports = class MetamaskController extends EventEmitter {
     if (!('logins' in initState)) {
       initState.logins = {}
     }
-    for (let origin in initState.logins) {
+    for (const origin in initState.logins) {
       this.logins[origin] = new Login(initState.logins[origin])
     }
 
@@ -1321,7 +1321,7 @@ module.exports = class MetamaskController extends EventEmitter {
    *
    * @param {string} origin = The origin string representing the domain.
    */
-  initializePermissions() {
+  initializePermissions () {
     this.testProfile = {
       name: 'Dan Finlay',
     }
@@ -1386,7 +1386,7 @@ module.exports = class MetamaskController extends EventEmitter {
         const { origin, siteTitle, id } = metadata
 
         const isUnlocked = this.getState().isUnlocked
-        let result = {}
+        const result = {}
 
         const restricted = this.permissions.restrictedMethods
         const descriptions = Object.keys(opts).map(method => restricted[method].description)
@@ -1398,7 +1398,7 @@ module.exports = class MetamaskController extends EventEmitter {
           this.opts.openPopup && this.opts.openPopup()
         }
 
-        return new Promise ((res, rej) => {
+        return new Promise((res, rej) => {
           this.pendingApprovals[id] = { res, rej }
         })
 
@@ -1465,7 +1465,7 @@ module.exports = class MetamaskController extends EventEmitter {
     this.connections[origin] = engine
   }
 
-  sendMessage(origin, message) {
+  sendMessage (origin, message) {
     const engine = this.connections[origin]
     engine.emit('notification', JSON.stringify({ arbitrary: 'data-stuffs' }))
   }

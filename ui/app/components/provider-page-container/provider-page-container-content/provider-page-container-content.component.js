@@ -1,11 +1,13 @@
 import PropTypes from 'prop-types'
 import React, {PureComponent} from 'react'
 import Identicon from '../../identicon'
+import AccountDropdownMini from '../../account-dropdown-mini'
 
 export default class ProviderPageContainerContent extends PureComponent {
   static propTypes = {
     request: PropTypes.object.isRequired,
     selectedIdentity: PropTypes.object.isRequired,
+    permissionsDescriptions: PropTypes.array.isRequired,
   }
 
   static contextTypes = {
@@ -86,6 +88,7 @@ export default class ProviderPageContainerContent extends PureComponent {
           <h2>{t('connectRequest')}</h2>
           {this.renderConnectVisual()}
           <h1>{t('providerRequest', [siteTitle])}</h1>
+          <AccountDropdownMini className="provider-approval-container__content"/>
           <p>
             <br/>
             {this.renderRequestedPermissions()}

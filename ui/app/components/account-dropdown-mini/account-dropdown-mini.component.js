@@ -3,13 +3,14 @@ import PropTypes from 'prop-types'
 import AccountListItem from '../send/account-list-item/account-list-item.component'
 
 export default class AccountDropdownMini extends PureComponent {
+
   static propTypes = {
     accounts: PropTypes.array.isRequired,
-    closeDropdown: PropTypes.func,
-    disabled: PropTypes.bool,
-    dropdownOpen: PropTypes.bool,
-    onSelect: PropTypes.func,
-    openDropdown: PropTypes.func,
+    closeDropdown: PropTypes.func.isRequired,
+    disabled: PropTypes.bool.isRequired,
+    dropdownOpen: PropTypes.bool.isRequired,
+    onSelect: PropTypes.func.isRequired,
+    openDropdown: PropTypes.func.isRequired,
     selectedAccount: PropTypes.object.isRequired,
   }
 

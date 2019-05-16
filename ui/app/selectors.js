@@ -77,6 +77,7 @@ function getMetaMaskAccounts (state) {
       selectedAccounts[accountID] = account
     }
   })
+  console.warn(selectedAccounts)
   return selectedAccounts
 }
 
