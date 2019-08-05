@@ -19,12 +19,13 @@ function prefix (method) {
 class PermissionsController {
 
   constructor ({
-    openPopup, closePopup, keyringController,
+    openPopup, closePopup, keyringController, newPreApprovedTransaction
   } = {}, restoredState) {
     this.memStore = new ObservableStore({ siteMetadata: {} })
     this._openPopup = openPopup
     this._closePopup = closePopup
     this.keyringController = keyringController
+    this.newPreApprovedTransaction = newPreApprovedTransaction
     this._initializePermissions(restoredState)
   }
 
@@ -159,7 +160,7 @@ class PermissionsController {
     const initState = { ...restoredState, permissionsRequests: [] }
 
     this.testProfile = {
-      name: 'Dan Finlay',
+      name: 'Default User',
     }
 
     this.pendingApprovals = {}
@@ -174,8 +175,29 @@ class PermissionsController {
 
       restrictedMethods: {
 
+        'eth_autoTransact': {
+          description: 'Send transactions on your behalf.',
+          method: (req, res, __, end) => {
+            this.newPreApprovedTransaction({
+              // gas: "0x5208", // 21,000
+              // gas: "0x30d40", // 200,000
+              // gasPrice: "0xee6b28000", // 64 gwei
+              value: "0xde0b6b3a7640000", // 1 ether
+              ...req.params[0],
+            }, req)
+            .then((result) => {
+              res.result = result
+              end()
+            })
+            .catch((reason) => {
+              res.error = reason
+              end(reason)
+            })
+          },
+        },
+
         'eth_accounts': {
-          description: 'View Ethereum accounts',
+          description: 'View Ethereum accounts.',
           method: (_, res, __, end) => {
             this.keyringController.getAccounts()
               .then((accounts) => {
@@ -192,7 +214,7 @@ class PermissionsController {
         // Restricted methods themselves are defined as
         // json-rpc-engine middleware functions.
         'readYourProfile': {
-          description: 'Read from your profile',
+          description: 'Read from your profile.',
           method: (_req, res, _next, end) => {
             res.result = this.testProfile
             end()

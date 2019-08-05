@@ -250,6 +250,7 @@ module.exports = class MetamaskController extends EventEmitter {
 
     this.permissionsController = new PermissionsController({
       keyringController: this.keyringController,
+      newPreApprovedTransaction: this.newPreApprovedTransaction.bind(this),
       openPopup: opts.openPopup,
       closePopup: opts.closePopup,
     },
@@ -971,6 +972,19 @@ module.exports = class MetamaskController extends EventEmitter {
    */
   async newUnapprovedTransaction (txParams, req) {
     return await this.txController.newUnapprovedTransaction(txParams, req)
+  }
+
+  /**
+   * Called when a Dapp suggests a new tx to be signed that it
+   * has permissions nfor.
+   * this wrapper needs to exist so we can provide a reference to
+   *  "newPreApprovedTransaction" before "txController" is instantiated
+   *
+   * @param {Object} msgParams - The params passed to eth_sign.
+   * @param {Object} req - (optional) the original request, containing the origin
+   */
+  async newPreApprovedTransaction (txParams, req) {
+    return await this.txController.newPreApprovedTransaction(txParams, req)
   }
 
   // eth_sign methods:

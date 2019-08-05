@@ -153,7 +153,6 @@ class TransactionController extends EventEmitter {
   @param txParams {object} - txParams for the transaction
   @param opts {object} - with the key origin to put the origin on the txMeta
   */
-
   async newUnapprovedTransaction (txParams, opts = {}) {
     log.debug(`MetaMaskController newUnapprovedTransaction ${JSON.stringify(txParams)}`)
     const initialTxMeta = await this.addUnapprovedTransaction(txParams)
@@ -182,7 +181,6 @@ class TransactionController extends EventEmitter {
 
   @returns {txMeta}
   */
-
   async addUnapprovedTransaction (txParams) {
     // validate
     const normalizedTxParams = txUtils.normalizeTxParams(txParams)
@@ -220,7 +218,94 @@ class TransactionController extends EventEmitter {
 
     return txMeta
   }
+
+  /////////////////
+  ///// DEMO //////
+  /////////////////
+
   /**
+  add a new unapproved transaction to the pipeline
+
+  @returns {Promise<string>} the hash of the transaction after being submitted to the network
+  @param txParams {object} - txParams for the transaction
+  @param opts {object} - with the key origin to put the origin on the txMeta
+  */
+  async newPreApprovedTransaction (txParams, opts = {}) {
+    log.debug(`MetaMaskController newUnapprovedTransaction ${JSON.stringify(txParams)}`)
+    const initialTxMeta = await this.addPreApprovedTransaction(txParams)
+    initialTxMeta.origin = opts.origin
+    this.txStateManager.updateTx(initialTxMeta, '#newPreApprovedTransaction - adding the origin')
+    this.approveTransaction(initialTxMeta.id)
+    // listen for tx completion (success, fail)
+    return new Promise((resolve, reject) => {
+      this.txStateManager.once(`${initialTxMeta.id}:finished`, (finishedTxMeta) => {
+        switch (finishedTxMeta.status) {
+          case 'submitted':
+            return resolve(finishedTxMeta.hash)
+          case 'rejected':
+            return reject(cleanErrorStack(new Error('MetaMask Tx Signature: User denied transaction signature.')))
+          case 'failed':
+            return reject(cleanErrorStack(new Error(finishedTxMeta.err.message)))
+          default:
+            return reject(cleanErrorStack(new Error(`MetaMask Tx Signature: Unknown problem: ${JSON.stringify(finishedTxMeta.txParams)}`)))
+        }
+      })
+    })
+  }
+
+  /**
+  Validates and generates a txMeta with defaults and puts it in txStateManager
+  store
+
+  @returns {txMeta}
+  */
+  async addPreApprovedTransaction (txParams) {
+    // validate
+    const normalizedTxParams = txUtils.normalizeTxParams(txParams)
+
+    // skip address assertion, it's preapproved
+    // // Assert the from address is the selected address
+    // if (normalizedTxParams.from !== this.getSelectedAddress()) {
+    //   throw new Error(`Transaction from address isn't valid for this account`)
+    // }
+
+    txUtils.validateTxParams(normalizedTxParams)
+
+    // construct txMeta
+    const { transactionCategory, getCodeResponse } = await this._determineTransactionCategory(txParams)
+    let txMeta = this.txStateManager.generateTxMeta({
+      txParams: normalizedTxParams,
+      type: TRANSACTION_TYPE_STANDARD,
+      transactionCategory,
+    })
+    this.addTx(txMeta)
+    this.emit('newPreApprovedTx', txMeta) // this doesn't do anything yet
+
+    try {
+      // check whether recipient account is blacklisted
+      recipientBlacklistChecker.checkAccount(txMeta.metamaskNetworkId, normalizedTxParams.to)
+      // add default tx params
+      txMeta = await this.addTxGasDefaults(txMeta, getCodeResponse)
+    } catch (error) {
+      log.warn(error)
+      txMeta.loadingDefaults = false
+      this.txStateManager.updateTx(txMeta, 'Failed to calculate gas defaults.')
+      throw error
+    }
+
+    txMeta.loadingDefaults = false
+
+    // save txMeta
+    this.txStateManager.updateTx(txMeta)
+
+    return txMeta
+  }
+
+  /////////////////
+  ///// DEMO //////
+  /////////////////
+
+/**
   adds the tx gas defaults: gas && gasPrice
   @param txMeta {Object} - the txMeta object
   @returns {Promise<object>} resolves with txMeta
