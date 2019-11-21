@@ -3,12 +3,17 @@
  * Freezes the Promise global and prevents its reassignment.
  */
 const deepFreeze = require('deep-freeze-strict')
+const globalNames = require('./global-names')
 
 if (
   process.env.IN_TEST !== 'true' &&
   process.env.METAMASK_ENV !== 'test'
 ) {
-  freeze(global, 'Promise')
+  // freeze(global, 'Promise')
+  for (const name of globalNames) {
+    if (!global[name]) continue
+    freeze(global, name)
+  }
 }
 
 /**
